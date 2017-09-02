@@ -1,4 +1,4 @@
-function position = trackAnimal(video)
+function position = trackAnimal(video, shiftIndex)
 %, shiftedIndex)
 % Script to calculate the animal's position from the video. This script
 % also shifts the video using the output from KitchenSync so that it is
@@ -7,9 +7,16 @@ function position = trackAnimal(video)
 % Last modified by Anja Payne
 
 tic
+
+% Shift the video data using index obtained from KitchenSync so that it
+% matches the ephys data
+shiftVideo(shiftIndex);
+
 % Read in video and calculate the total number of frames to iterate over
 v = VideoReader(video);
 num_frames = floor(v.FrameRate*v.Duration);
+
+
 
 % For each frame, find the brightest pixel (should be the LED attached to
 % headstage) and save the x and y position. 
