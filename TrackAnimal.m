@@ -23,7 +23,7 @@ x_pos = NaN(1, floor(count_frames/skip_by));
 y_pos = NaN(1, floor(count_frames/skip_by)); 
 k = 1; 
 
-for i = 1:skip_by:num_frames;
+for i = 500:500%550 %:skip_by:num_frames;
     % Only track the position for frames that occur after the
     % electrophysiology acquisition starts. 
     if newIndex(i) < 0;
@@ -32,28 +32,30 @@ for i = 1:skip_by:num_frames;
     
     frame = read(v,i);
 	frame_red = frame(:,:,1);
-	[m, n] = size(frame_red); 
-    
-	% Find the maximum
- 	[max_1, index] = max(frame_red); 
-	[max_2, index_col] = max(max_1); 
-	index_row = index(index_col); 
-        
-	if max_2 < 200; 
-        x_pos(k) = NaN; 
-        y_pos(k) = NaN;
-    elseif max_2 >= 200; 
-        x_pos(k) = index_col;
-        y_pos(k) = index_row; 
+	
+    % If none of the pixels are 255 then the LED was most likely obscured,
+    % skip these frames
+    if max(max(frame_red)) < 255; 
+        continue;
     end
        
-    k = k + 1; 
+	% Find the maximum
+    brightest_pixels = find(frame_red == 255)
+    % Choose the middle value
+    maximum = brightest_pixels(ceil(length(brightest_pixels)/2)) 
+    
+    % Find the corresponding x and y coordinates for the brightest pixel
+    [m, n] = size(frame_red); 
+    index_row    = floor(maximum/m);
+    test_index = m*n - maximum;
+    index_column = floor(test_index/n); 
+
+    figure(1);
+    hold on;
+    imagesc(frame);
+    scatter(index_row, index_column, 'xr');
 end
 
-% Interpolate results
-% x2interp = linspace(1, length(x_pos), num_frames);
-% interpx = interp1(1:length(x_pos), x_pos, x2interp);
-% interpy = interp1(1:length(y_pos), y_pos, x2interp);
 
 toc
 
@@ -62,4 +64,4 @@ pos = [x_pos;
 
 filename = video(1:end-4); 
 filename = [filename '.mat'];
-%save(filename, 'pos'); 
+save(filename, 'pos'); 
