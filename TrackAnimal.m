@@ -1,5 +1,4 @@
-function position = trackAnimal(video, shiftIndex)
-%, shiftedIndex)
+function pos = TrackAnimal(video, shiftIndex)
 % Script to calculate the animal's position from the video. This script
 % also shifts the video using the output from KitchenSync so that it is
 % aligned to the electrophysiology data. 
@@ -10,24 +9,28 @@ tic
 
 % Shift the video data using index obtained from KitchenSync so that it
 % matches the ephys data
-shiftVideo(shiftIndex);
+newIndex = shiftVideo(shiftIndex);
 
 % Read in video and calculate the total number of frames to iterate over
 v = VideoReader(video);
-num_frames = floor(v.FrameRate*v.Duration);
-
-
+num_frames = length(newIndex) %floor(v.FrameRate*v.Duration);
+count_frames = length(newIndex(newIndex>0))
 
 % For each frame, find the brightest pixel (should be the LED attached to
 % headstage) and save the x and y position. 
-skip_by = 1; 
-x_pos = NaN(1, floor(num_frames/skip_by)); 
-y_pos = NaN(1, floor(num_frames/skip_by)); 
-time  = NaN(1, floor(num_frames/skip_by));
-i = 1;
-%{
-for n = 1:skip_by:num_frames;
-	frame = read(v,i);
+skip_by = 1000; 
+x_pos = NaN(1, floor(count_frames/skip_by)); 
+y_pos = NaN(1, floor(count_frames/skip_by)); 
+k = 1; 
+
+for i = 1:skip_by:num_frames;
+    % Only track the position for frames that occur after the
+    % electrophysiology acquisition starts. 
+    if newIndex(i) < 0;
+        continue;
+    end
+    
+    frame = read(v,i);
 	frame_red = frame(:,:,1);
 	[m, n] = size(frame_red); 
     
@@ -37,14 +40,14 @@ for n = 1:skip_by:num_frames;
 	index_row = index(index_col); 
         
 	if max_2 < 200; 
-        x_pos(i) = NaN; 
-        y_pos(i) = NaN;
+        x_pos(k) = NaN; 
+        y_pos(k) = NaN;
     elseif max_2 >= 200; 
-        x_pos(i) = index_col;
-        y_pos(i) = index_row; 
+        x_pos(k) = index_col;
+        y_pos(k) = index_row; 
     end
        
-    i = i + 1; 
+    k = k + 1; 
 end
 
 % Interpolate results
@@ -56,8 +59,7 @@ toc
 
 pos = [x_pos; 
        y_pos];
-%}
-filename = erase(video, '.mp4'); 
-filename = [video '.mat']
-   
-%save([video '.mat'], 'pos'); 
+
+filename = video(1:end-4); 
+filename = [filename '.mat'];
+%save(filename, 'pos'); 
