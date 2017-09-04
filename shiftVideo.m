@@ -6,6 +6,5 @@ function video = shiftVideo(shiftedIndex);
 % Load the index data that was provided by Kitchen Sync
 fileList = dir('*index.txt'); 
 video = textread(shiftedIndex);
-%video = video(video>0); 
 
 end

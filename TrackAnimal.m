@@ -10,20 +10,21 @@ tic
 % Shift the video data using index obtained from KitchenSync so that it
 % matches the ephys data
 newIndex = shiftVideo(shiftIndex);
+newIndex = newIndex(1:333:end); 
 
 % Read in video and calculate the total number of frames to iterate over
 v = VideoReader(video);
-num_frames = length(newIndex) %floor(v.FrameRate*v.Duration);
+num_frames = floor(v.FrameRate*v.Duration)
 count_frames = length(newIndex(newIndex>0))
 
 % For each frame, find the brightest pixel (should be the LED attached to
 % headstage) and save the x and y position. 
-skip_by = 1000; 
+skip_by = 1; 
 x_pos = NaN(1, floor(count_frames/skip_by)); 
 y_pos = NaN(1, floor(count_frames/skip_by)); 
-k = 1; 
 
 for i = 1:skip_by:num_frames;
+    i
     % Only track the position for frames that occur after the
     % electrophysiology acquisition starts. 
     if newIndex(i) < 0;
