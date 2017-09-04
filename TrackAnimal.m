@@ -2,7 +2,7 @@ function pos = TrackAnimal(video, shiftIndex)
 % Script to calculate the animal's position from the video. This script
 % also shifts the video using the output from KitchenSync so that it is
 % aligned to the electrophysiology data. 
-% Written September 1, 2017
+% Written September 4, 2017
 % Last modified by Anja Payne
 
 tic
@@ -23,7 +23,7 @@ x_pos = NaN(1, floor(count_frames/skip_by));
 y_pos = NaN(1, floor(count_frames/skip_by)); 
 k = 1; 
 
-for i = 500:500%550 %:skip_by:num_frames;
+for i = 1:skip_by:num_frames;
     % Only track the position for frames that occur after the
     % electrophysiology acquisition starts. 
     if newIndex(i) < 0;
@@ -38,24 +38,29 @@ for i = 500:500%550 %:skip_by:num_frames;
     if max(max(frame_red)) < 255; 
         continue;
     end
-       
-	% Find the maximum
-    brightest_pixels = find(frame_red == 255)
-    % Choose the middle value
-    maximum = brightest_pixels(ceil(length(brightest_pixels)/2)) 
     
-    % Find the corresponding x and y coordinates for the brightest pixel
-    [m, n] = size(frame_red); 
-    index_row    = floor(maximum/m);
-    test_index = m*n - maximum;
-    index_column = floor(test_index/n); 
-
+    % Update the display window with the progress every 500 frames
+    if rem(i, 500) == 0;
+       disp(['Calculating position for frame ', num2str(i), ' of ' num2str(num_frames)]); 
+    end
+    
+	% Find the maximum
+    [max_y, max_x] = find(frame_red == 255);
+    
+    % Choose the middle value
+    index_row    = max_x(ceil(length(max_x)/2)); 
+    index_column = max_y(ceil(length(max_y)/2));
+    
+    x_pos(i) = index_row;
+    y_pos(i) = index_column;
+     
+    %{
     figure(1);
     hold on;
     imagesc(frame);
     scatter(index_row, index_column, 'xr');
+    %}
 end
-
 
 toc
 
